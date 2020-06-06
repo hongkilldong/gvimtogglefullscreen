@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
+
 #include <stdbool.h>
 
 RECT get_monitor_resolution(HWND hwnd)
@@ -49,7 +50,7 @@ struct save_vim_wnd_info_t
   DWORD exstyle;
   bool maximized;
   RECT r;
-  LONG user_data;
+  LONG_PTR user_data;
 };
 
 LONG _declspec(dllexport) toggle_full_screen()
@@ -76,7 +77,7 @@ LONG _declspec(dllexport) toggle_full_screen()
     info->exstyle = GetWindowLong(vim_hwnd, GWL_EXSTYLE);
     GetWindowRect(vim_hwnd, &info->r);
 
-    info->user_data = SetWindowLong(vim_hwnd, GWL_USERDATA, (LONG)info);
+    info->user_data = SetWindowLongPtr(vim_hwnd, GWLP_USERDATA, (LONG_PTR)info);
 
     SetWindowLong(vim_hwnd, GWL_STYLE, 
       info->style & ~(WS_CAPTION|WS_THICKFRAME));
@@ -92,13 +93,13 @@ LONG _declspec(dllexport) toggle_full_screen()
   }
   else
   {
-    struct save_vim_wnd_info_t *info = (struct save_vim_wnd_info_t*)GetWindowLong(vim_hwnd, GWL_USERDATA);
+    struct save_vim_wnd_info_t *info = (struct save_vim_wnd_info_t*)GetWindowLongPtr(vim_hwnd, GWLP_USERDATA);
 
     SetWindowLong(vim_hwnd, GWL_STYLE, 
       info->style | (WS_CAPTION|WS_THICKFRAME));
     SetWindowLong(vim_hwnd, GWL_EXSTYLE, 
       info->exstyle | WS_EX_WINDOWEDGE);
-    SetWindowLong(vim_hwnd, GWL_USERDATA, info->user_data);
+    SetWindowLongPtr(vim_hwnd, GWLP_USERDATA, info->user_data);
 
     SetWindowPos(vim_hwnd, NULL, info->r.left, info->r.top, 
       info->r.right-info->r.left, info->r.bottom-info->r.top,
